@@ -31,7 +31,8 @@ const textframe = require("textframe")
 const DataURI   = require("datauri/parser")
 
 /*  internal requirements  */
-const api = require("./cvma-api.js")
+const api           = require("./cvma-api.js")
+const { makeTimer } = require("./cvma-api-1-util.js")
 
 module.exports = (parseArgs) => {
     /*  command: "recognize"  */
@@ -167,7 +168,7 @@ module.exports = (parseArgs) => {
             input = fs.readFileSync(optsCmd.inputFile, { encoding: null })
 
         /*  start timer  */
-        let timerStart = process.hrtime.bigint()
+        const timer = makeTimer("ms")
 
         /*  pass-through control to API  */
         const recognizer = new api.Recognizer({
@@ -186,10 +187,9 @@ module.exports = (parseArgs) => {
         const markers = await recognizer.recognize(input)
 
         /*  optionally stop timer  */
-        let timerEnd = process.hrtime.bigint()
         if (optsCmd.timing) {
-            const timerDuration = (timerEnd - timerStart) / (1000n * 1000n)
-            process.stderr.write(`Elapsed Time: ${timerDuration}ms\n`)
+            const duration = timer()
+            process.stderr.write(`Elapsed Time: ${duration}ms\n`)
         }
 
         /*  provide output  */

@@ -53,8 +53,23 @@ const convertNum = (num, to) => {
     return convertUnit(num, from, to)
 }
 
+/*  provide high-resolution timer  */
+const makeTimer = (resolution = "ns") => {
+    const start = process.hrtime.bigint()
+    return () => {
+        const end = process.hrtime.bigint()
+        let duration = end - start
+        if (resolution === "us")
+            duration /= 1000n
+        else if (resolution === "ms")
+            duration /= (1000n * 1000n)
+        return BigInt.asUintN(64, duration)
+    }
+}
+
 module.exports = {
     convertUnit,
-    convertNum
+    convertNum,
+    makeTimer
 }
 
