@@ -29,7 +29,7 @@ const Color        = require("color")
 
 /*  internal requirements  */
 const { convertNum, makeTimer } = require("./cvma-api-1-util.js")
-const { markerDef }  = require("./cvma-api-2-defs.js")
+const { markerDef }             = require("./cvma-api-2-defs.js")
 
 /*  helper class for bitmap abstraction  */
 class Bitmap {}
