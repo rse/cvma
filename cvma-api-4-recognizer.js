@@ -25,7 +25,6 @@
 /*  external requirements  */
 const hammingCode  = require("hamming-code")
 const Jimp         = require("jimp")
-const Color        = require("color")
 
 /*  internal requirements  */
 const { convertNum, makeTimer } = require("./cvma-api-1-util.js")
@@ -168,8 +167,16 @@ class Recognizer {
             let lum = lumCache.get(key)
             if (lum === undefined) {
                 const rgb = bitmap.getPixelColor(x, y)
-                const col = Color.rgb(rgb.r, rgb.g, rgb.b)
-                lum = col.luminosity()
+
+                /*  calculate relative luminance
+                    (see http://www.w3.org/TR/WCAG20/#relativeluminancedef for formula)  */
+                let chan = rgb.r / 255
+                lum = ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.2126
+                chan = rgb.g / 255
+                lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.7152
+                chan = rgb.b / 255
+                lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.0722
+
                 lumCache.set(key, lum)
             }
             return lum
