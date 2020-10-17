@@ -36,6 +36,7 @@ node cvma-cli.js recognize \
     --provide-errors \
     --provide-image \
     --output-format="html" \
-    --output-file="sample-result.html"
+    --output-file="sample-result.html" \
+    --timing
 cat sample-result.html
 

@@ -44,13 +44,18 @@ module.exports = (parseArgs) => {
                     "[-i|--input-file=<string>] " +
                     "[-o|--output-file=<string>] " +
                     "[-f|--output-format=<string>] " +
+                    "[-t|--timing] " +
                     "[-m|--marker-type=<string>] " +
                     "[-x|--scan-position-x=<string>] " +
                     "[-y|--scan-position-y=<string>] " +
                     "[-w|--scan-width=<string>] " +
                     "[-h|--scan-height=<string>] " +
                     "[-B|--marker-color-bg=<string>] " +
-                    "[-F|--marker-color-fg=<string>]"
+                    "[-F|--marker-color-fg=<string>] " +
+                    "[-A|--provide-area] " +
+                    "[-M|--provide-matrix] " +
+                    "[-E|--provide-errors] " +
+                    "[-I|--provide-image]"
                 )
                 .option("i", {
                     alias:    "input-file",
@@ -72,6 +77,12 @@ module.exports = (parseArgs) => {
                     describe: "output format ('json', 'yaml', 'html')",
                     nargs:    1,
                     default:  "yaml"
+                })
+                .option("t", {
+                    alias:    "timing",
+                    type:     "boolean",
+                    describe: "time the operation",
+                    default:  false
                 })
                 .option("m", {
                     alias:    "marker-type",
@@ -155,6 +166,9 @@ module.exports = (parseArgs) => {
         else
             input = fs.readFileSync(optsCmd.inputFile, { encoding: null })
 
+        /*  start timer  */
+        let timerStart = process.hrtime.bigint()
+
         /*  pass-through control to API  */
         const recognizer = new api.Recognizer({
             markerType:      optsCmd.markerType,
@@ -170,6 +184,13 @@ module.exports = (parseArgs) => {
             provideImage:    optsCmd.provideImage
         })
         const markers = await recognizer.recognize(input)
+
+        /*  optionally stop timer  */
+        let timerEnd = process.hrtime.bigint()
+        if (optsCmd.timing) {
+            const timerDuration = (timerEnd - timerStart) / (1000n * 1000n)
+            process.stderr.write(`Elapsed Time: ${timerDuration}ms\n`)
+        }
 
         /*  provide output  */
         let output = ""
