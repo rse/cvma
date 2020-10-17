@@ -31,8 +31,7 @@ const textframe = require("textframe")
 const DataURI   = require("datauri/parser")
 
 /*  internal requirements  */
-const api           = require("./cvma-api.js")
-const { makeTimer } = require("./cvma-api-1-util.js")
+const api       = require("./cvma-api.js")
 
 module.exports = (parseArgs) => {
     /*  command: "recognize"  */

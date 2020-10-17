@@ -46,6 +46,7 @@ env:
 
 globals:
     process:       true
+    BigInt:        true
 
 rules:
     #   modified rules

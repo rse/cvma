@@ -79,7 +79,6 @@ class Recognizer {
         /*  read image  */
         timingStart()
         const img = await Jimp.read(input)
-        if (this.options.provideTiming)
         timingEnd()
 
         /*  optionally crop to scan area  */
@@ -345,7 +344,7 @@ class Recognizer {
         timingEnd()
 
         /*  assemble result  */
-        let result = { markers }
+        const result = { markers }
         if (this.options.provideTiming) {
             console.log(timings)
             timings.total = timings.step.reduce((a, b) => a + b, 0)
