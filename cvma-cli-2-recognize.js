@@ -28,6 +28,7 @@ const fs        = require("fs")
 const getStream = require("get-stream")
 const jsYAML    = require("js-yaml")
 const textframe = require("textframe")
+const Jimp      = require("jimp")
 const DataURI   = require("datauri/parser")
 
 /*  internal requirements  */
@@ -52,9 +53,9 @@ module.exports = (parseArgs) => {
                     "[-B|--marker-color-bg=<string>] " +
                     "[-F|--marker-color-fg=<string>] " +
                     "[-A|--provide-area] " +
+                    "[-G|--provide-grid] " +
                     "[-M|--provide-matrix] " +
                     "[-E|--provide-errors] " +
-                    "[-I|--provide-image] " +
                     "[-T|--provide-timing]"
                 )
                 .option("i", {
@@ -133,6 +134,12 @@ module.exports = (parseArgs) => {
                     describe: "provide marker area information in results",
                     default:  false
                 })
+                .option("G", {
+                    alias:    "provide-grid",
+                    type:     "boolean",
+                    describe: "provide grid image information in results",
+                    default:  false
+                })
                 .option("M", {
                     alias:    "provide-matrix",
                     type:     "boolean",
@@ -143,12 +150,6 @@ module.exports = (parseArgs) => {
                     alias:    "provide-errors",
                     type:     "boolean",
                     describe: "provide marker decoding errors information in results",
-                    default:  false
-                })
-                .option("I", {
-                    alias:    "provide-image",
-                    type:     "boolean",
-                    describe: "provide marker image information in results",
                     default:  false
                 })
                 .option("T", {
@@ -165,9 +166,11 @@ module.exports = (parseArgs) => {
             input = await getStream(process.stdin, { encoding: null })
         else
             input = fs.readFileSync(optsCmd.inputFile, { encoding: null })
+        input = await Jimp.read(input)
 
         /*  pass-through control to API  */
         const recognizer = new api.Recognizer({
+            inputFormat:     "jimp",
             markerType:      optsCmd.markerType,
             scanWidth:       optsCmd.scanWidth,
             scanHeight:      optsCmd.scanHeight,
@@ -176,9 +179,9 @@ module.exports = (parseArgs) => {
             markerColorBG:   optsCmd.markerColorBg,
             markerColorFG:   optsCmd.markerColorFg,
             provideArea:     optsCmd.provideArea,
+            provideGrid:     optsCmd.provideGrid,
             provideMatrix:   optsCmd.provideMatrix,
             provideErrors:   optsCmd.provideErrors,
-            provideImage:    optsCmd.provideImage,
             provideTiming:   optsCmd.provideTiming
         })
         const result = await recognizer.recognize(input)
@@ -197,10 +200,16 @@ module.exports = (parseArgs) => {
                 body += "<h2>Marker</h2>\n"
                 if (optsCmd.provideArea)
                     body += `<div>Area: ${JSON.stringify(marker.area)}</div>\n`
-                if (optsCmd.provideImage) {
+                if (optsCmd.provideGrid) {
+                    const img = new Jimp(marker.grid.w, marker.grid.h, "#ff0000", () => {})
+                    for (const cell of marker.grid.c) {
+                        const block = await Jimp.read(cell.d)
+                        img.blit(block, cell.x + cell.i, cell.y + cell.j, 0, 0, cell.d.width, cell.d.height)
+                    }
+                    const buffer = await img.getBufferAsync(Jimp.MIME_PNG)
                     const parser = new DataURI()
-                    const img = parser.format(".bmp", marker.image)
-                    body += `<div>Image: <img src="${img.content}" width="100"></div>\n`
+                    const uri = parser.format(".png", buffer)
+                    body += `<div>Image: <img src="${uri.content}" width="100"></div>\n`
                 }
                 if (optsCmd.provideMatrix)
                     body += `<div>Matrix: ${JSON.stringify(marker.matrix)}</div>\n`

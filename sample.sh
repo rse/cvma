@@ -34,7 +34,7 @@ node cvma-cli.js recognize \
     --provide-area \
     --provide-matrix \
     --provide-errors \
-    --provide-image \
+    --provide-grid \
     --provide-timing \
     --output-format="html" \
     --output-file="sample-result.html"

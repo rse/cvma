@@ -31,12 +31,76 @@ const Color        = require("color")
 const { convertNum, makeTimer } = require("./cvma-api-1-util.js")
 const { markerDef }  = require("./cvma-api-2-defs.js")
 
+/*  helper class for bitmap abstraction  */
+class Bitmap {}
+
+/*  helper class for bitmap abstraction (Node/Jimp flavor)  */
+class BitmapJimp extends Bitmap {
+    constructor (jimp) {
+        super()
+        this.jimp = jimp
+    }
+    get width  () { return this.jimp.bitmap.width  }
+    get height () { return this.jimp.bitmap.height }
+    getImageData (x, y, w, h) {
+        const tmp = new Jimp(w, h, () => {})
+        tmp.blit(this.jimp, 0, 0, x, y, w, h)
+        return {
+            width:  w,
+            height: h,
+            data:   new Uint8ClampedArray(tmp.bitmap.data)
+        }
+    }
+    getPixelColor (x, y) {
+        return Jimp.intToRGBA(this.jimp.getPixelColor(x, y))
+    }
+    scanArea (x, y, w, h, cb) {
+        return this.jimp.scan(x, y, w, h, cb)
+    }
+}
+
+/*  helper class for bitmap abstraction (DOM/Canvas flavor)  */
+class BitmapCanvas extends Bitmap {
+    constructor (canvas) {
+        super()
+        this.canvas = canvas
+        this.ctx    = this.canvas.getContext("2d")
+        this.img    = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+    }
+    get width  () { return this.img.width  }
+    get height () { return this.img.height }
+    getImageData (x, y, w, h) {
+        return this.ctx.getImageData(x, y, w, h)
+    }
+    getPixelColor (x, y) {
+        return {
+            r: this.img.data[((x + y * this.width) << 2)],
+            g: this.img.data[((x + y * this.width) << 2) + 1],
+            b: this.img.data[((x + y * this.width) << 2) + 2],
+            a: this.img.data[((x + y * this.width) << 2) + 3]
+        }
+    }
+    scanArea (x, y, w, h, cb) {
+        const X = Math.round(x)
+        const Y = Math.round(y)
+        const W = Math.round(w)
+        const H = Math.round(h)
+        for (let y = Y; y < Y + H; y++) {
+            for (let x = X; x < X + W; x++) {
+                const idx = ((x + y * this.width) << 2)
+                cb(x, y, idx)
+            }
+        }
+    }
+}
+
 /*  the recognizer API class  */
 class Recognizer {
     constructor (options = {}) {
         /*  provide parameter defaults  */
         this.options = Object.assign({}, {
             markerType:      "66O",
+            inputFormat:     "jimp",
             scanWidth:       "0",
             scanHeight:      "0",
             scanPositionX:   "0",
@@ -44,15 +108,17 @@ class Recognizer {
             markerColorBG:   "#ffffff",
             markerColorFG:   "#000000",
             provideArea:     false,
+            provideGrid:     false,
             provideMatrix:   false,
             provideErrors:   false,
-            provideImage:    false,
             provideTiming:   false
         }, options)
 
         /*  sanity check parameters  */
         if (markerDef[this.options.markerType] === undefined)
             throw new Error("invalid marker type")
+        if (!this.options.inputFormat.match(/^(?:jimp|canvas)$/))
+            throw new Error("invalid input format")
 
         /*  unit-convert parameters  */
         this.options.scanWidth       = convertNum(this.options.scanWidth,     "px")
@@ -76,18 +142,20 @@ class Recognizer {
                 timings.step[step++] = timer()
         }
 
-        /*  read image  */
-        timingStart()
-        const img = await Jimp.read(input)
-        timingEnd()
+        /*  prepare access to input bitmap image  */
+        let bitmap
+        if (this.options.inputFormat === "jimp")
+            bitmap = new BitmapJimp(input)
+        else if (this.options.inputFormat === "canvas")
+            bitmap = new BitmapCanvas(input)
 
         /*  optionally crop to scan area  */
         const X = this.options.scanPositionX < 0 ?
-            img.bitmap.width + this.options.scanPositionX : this.options.scanPositionX
+            bitmap.width + this.options.scanPositionX : this.options.scanPositionX
         const Y = this.options.scanPositionY < 0 ?
-            img.bitmap.height + this.options.scanPositionY : this.options.scanPositionY
-        const W = this.options.scanWidth  > 0 ? this.options.scanWidth  : img.bitmap.width
-        const H = this.options.scanHeight > 0 ? this.options.scanHeight : img.bitmap.height
+            bitmap.height + this.options.scanPositionY : this.options.scanPositionY
+        const W = this.options.scanWidth  > 0 ? this.options.scanWidth  : bitmap.width
+        const H = this.options.scanHeight > 0 ? this.options.scanHeight : bitmap.height
 
         /*  determine marker information  */
         const marker = markerDef[this.options.markerType]
@@ -99,11 +167,9 @@ class Recognizer {
             const key = `${x}:${y}`
             let lum = lumCache.get(key)
             if (lum === undefined) {
-                const int = img.getPixelColor(x, y)
-                const rgb = Jimp.intToRGBA(int)
+                const rgb = bitmap.getPixelColor(x, y)
                 const col = Color.rgb(rgb.r, rgb.g, rgb.b)
                 lum = col.luminosity()
-                // lum = (rgb.r + rgb.g + rgb.b) / 3
                 lumCache.set(key, lum)
             }
             return lum
@@ -113,7 +179,7 @@ class Recognizer {
         timingStart()
         let darkest  = 1.00
         let lightest = 0.00
-        img.scan(X, Y, W, H, (x, y, idx) => {
+        bitmap.scanArea(X, Y, W, H, (x, y, idx) => {
             const lum = getPixelLuminosity(x, y)
             if (darkest > lum)
                 darkest = lum
@@ -161,7 +227,7 @@ class Recognizer {
         for (let y = Y; y < Y + H; y++) {
             let state = "other"
             let area = null
-            img.scan(X, y, W, 1, (x, y, idx) => {
+            bitmap.scanArea(X, y, W, 1, (x, y, idx) => {
                 const lum = getPixelLuminosity(x, y)
                 const stateNew = stateTransition(state, lum)
                 if (stateNew !== state) {
@@ -190,7 +256,7 @@ class Recognizer {
         for (const x of areasH.map((a) => a.x).filter((v, i, a) => a.indexOf(v) === i)) {
             let state = "other"
             let area = null
-            img.scan(x, Y, 1, H, (x, y, idx) => {
+            bitmap.scanArea(x, Y, 1, H, (x, y, idx) => {
                 const lum = getPixelLuminosity(x, y)
                 const stateNew = stateTransition(state, lum)
                 if (stateNew !== state) {
@@ -211,7 +277,6 @@ class Recognizer {
         timingEnd()
 
         /*  intersect horizontal and vertical areas  */
-        timingStart()
         const areas = []
         for (const areaH of areasH) {
             for (const areaV of areasV) {
@@ -222,7 +287,6 @@ class Recognizer {
                 }
             }
         }
-        timingEnd()
 
         /*  iterate over all marker areas  */
         timingStart()
@@ -238,33 +302,40 @@ class Recognizer {
                 slices.push(lenTotal)
                 return slices
             }
-            const grid = {
+            const slices = {
                 dx: slice(area.w, markerSize),
                 dy: slice(area.h, markerSize)
             }
 
             /*  optionally create grid image  */
-            let gridImg = null
-            if (this.options.provideImage)
-                gridImg = new Jimp(area.w + (markerSize - 1), area.h + (markerSize - 1), "#ff0000", () => {})
+            const grid = {
+                w: area.w + (markerSize - 1),
+                h: area.h + (markerSize - 1),
+                c: []
+            }
 
             /*  iterate over all grid cells  */
             const matrix = []
-            for (let j = 0; j < grid.dy.length - 1; j++) {
-                for (let i = 0; i < grid.dx.length - 1; i++) {
+            for (let j = 0; j < slices.dy.length - 1; j++) {
+                for (let i = 0; i < slices.dx.length - 1; i++) {
                     /*  determine cell block  */
-                    const x = area.x + grid.dx[i]
-                    const y = area.y + grid.dy[j]
-                    const w = grid.dx[i + 1] - grid.dx[i]
-                    const h = grid.dy[j + 1] - grid.dy[j]
+                    const x = area.x + slices.dx[i]
+                    const y = area.y + slices.dy[j]
+                    const w = slices.dx[i + 1] - slices.dx[i]
+                    const h = slices.dy[j + 1] - slices.dy[j]
 
                     /*  optionally place cell block into grid image  */
-                    if (this.options.provideImage)
-                        gridImg.blit(img, grid.dx[i] + (i), grid.dy[j] + (j), x, y, w, h)
+                    if (this.options.provideGrid) {
+                        grid.c.push({
+                            i, j,
+                            x: slices.dx[i], y: slices.dy[j], w, h,
+                            d: bitmap.getImageData(x, y, w, h)
+                        })
+                    }
 
                     /*  calculate average luminosity of cell block  */
                     const lums = []
-                    img.scan(x, y, w, h, (x, y, idx) => {
+                    bitmap.scanArea(x, y, w, h, (x, y, idx) => {
                         lums.push(getPixelLuminosity(x, y))
                     })
                     let lum = 0
@@ -328,9 +399,9 @@ class Recognizer {
             if (this.options.provideMatrix)
                 result.matrix = matrix
 
-            /*  optionally export grid image  */
-            if (this.options.provideImage)
-                result.image = await gridImg.getBufferAsync(Jimp.MIME_BMP)
+            /*  optionally export grid  */
+            if (this.options.provideGrid)
+                result.grid = grid
 
             /*  optionally export error information  */
             if (this.options.provideErrors) {
@@ -346,7 +417,6 @@ class Recognizer {
         /*  assemble result  */
         const result = { markers }
         if (this.options.provideTiming) {
-            console.log(timings)
             timings.total = timings.step.reduce((a, b) => a + b, 0)
             result.timing = timings
         }
