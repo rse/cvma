@@ -28,7 +28,7 @@ const Jimp         = require("jimp")
 const Color        = require("color")
 
 /*  internal requirements  */
-const { convertNum } = require("./cvma-api-1-util.js")
+const { convertNum, makeTimer } = require("./cvma-api-1-util.js")
 const { markerDef }  = require("./cvma-api-2-defs.js")
 
 /*  the recognizer API class  */
@@ -46,7 +46,8 @@ class Recognizer {
             provideArea:     false,
             provideMatrix:   false,
             provideErrors:   false,
-            provideImage:    false
+            provideImage:    false,
+            provideTiming:   false
         }, options)
 
         /*  sanity check parameters  */
@@ -62,8 +63,24 @@ class Recognizer {
 
     /*  API method for recognizing markers  */
     async recognize (input) {
+        /*  support optional timing  */
+        const timings = { total: 0, step: [] }
+        let step = 0
+        let timer
+        const timingStart = () => {
+            if (this.options.provideTiming)
+                timer = makeTimer("ms")
+        }
+        const timingEnd = () => {
+            if (this.options.provideTiming)
+                timings.step[step++] = timer()
+        }
+
         /*  read image  */
+        timingStart()
         const img = await Jimp.read(input)
+        if (this.options.provideTiming)
+        timingEnd()
 
         /*  optionally crop to scan area  */
         const X = this.options.scanPositionX < 0 ?
@@ -87,12 +104,14 @@ class Recognizer {
                 const rgb = Jimp.intToRGBA(int)
                 const col = Color.rgb(rgb.r, rgb.g, rgb.b)
                 lum = col.luminosity()
+                // lum = (rgb.r + rgb.g + rgb.b) / 3
                 lumCache.set(key, lum)
             }
             return lum
         }
 
         /*  determine darkest/lightest pixel in scan window  */
+        timingStart()
         let darkest  = 1.00
         let lightest = 0.00
         img.scan(X, Y, W, H, (x, y, idx) => {
@@ -102,6 +121,7 @@ class Recognizer {
             if (lightest < lum)
                 lightest = lum
         })
+        timingEnd()
 
         /*  helper function for checking whether a number is near another  */
         const isNear = (x, y, epsilon) =>
@@ -137,6 +157,7 @@ class Recognizer {
         }
 
         /*  iterate over all rows in the scan window and horizontally find potential marker areas  */
+        timingStart()
         const areasH = []
         for (let y = Y; y < Y + H; y++) {
             let state = "other"
@@ -161,10 +182,13 @@ class Recognizer {
                     area.s++
             })
         }
+        timingEnd()
 
-        /*  iterate over all columns in the scan window and vertically find potential marker areas  */
+        /*  iterate over all columns (which correlate to the areas found horizontally)
+            in the scan window and vertically find potential marker areas  */
+        timingStart()
         const areasV = []
-        for (let x = X; x < X + W; x++) {
+        for (const x of areasH.map((a) => a.x).filter((v, i, a) => a.indexOf(v) === i)) {
             let state = "other"
             let area = null
             img.scan(x, Y, 1, H, (x, y, idx) => {
@@ -185,8 +209,10 @@ class Recognizer {
                     area.s++
             })
         }
+        timingEnd()
 
         /*  intersect horizontal and vertical areas  */
+        timingStart()
         const areas = []
         for (const areaH of areasH) {
             for (const areaV of areasV) {
@@ -197,8 +223,10 @@ class Recognizer {
                 }
             }
         }
+        timingEnd()
 
         /*  iterate over all marker areas  */
+        timingStart()
         const markers = []
         for (const area of areas) {
             /*  determine grid positions  */
@@ -314,8 +342,17 @@ class Recognizer {
             /*  provide results  */
             markers.push(result)
         }
+        timingEnd()
 
-        return markers
+        /*  assemble result  */
+        let result = { markers }
+        if (this.options.provideTiming) {
+            console.log(timings)
+            timings.total = timings.step.reduce((a, b) => a + b, 0)
+            result.timing = timings
+        }
+
+        return result
     }
 }
 

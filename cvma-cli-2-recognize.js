@@ -45,7 +45,6 @@ module.exports = (parseArgs) => {
                     "[-i|--input-file=<string>] " +
                     "[-o|--output-file=<string>] " +
                     "[-f|--output-format=<string>] " +
-                    "[-t|--timing] " +
                     "[-m|--marker-type=<string>] " +
                     "[-x|--scan-position-x=<string>] " +
                     "[-y|--scan-position-y=<string>] " +
@@ -56,7 +55,8 @@ module.exports = (parseArgs) => {
                     "[-A|--provide-area] " +
                     "[-M|--provide-matrix] " +
                     "[-E|--provide-errors] " +
-                    "[-I|--provide-image]"
+                    "[-I|--provide-image] " +
+                    "[-T|--provide-timing]"
                 )
                 .option("i", {
                     alias:    "input-file",
@@ -78,12 +78,6 @@ module.exports = (parseArgs) => {
                     describe: "output format ('json', 'yaml', 'html')",
                     nargs:    1,
                     default:  "yaml"
-                })
-                .option("t", {
-                    alias:    "timing",
-                    type:     "boolean",
-                    describe: "time the operation",
-                    default:  false
                 })
                 .option("m", {
                     alias:    "marker-type",
@@ -158,6 +152,12 @@ module.exports = (parseArgs) => {
                     describe: "provide marker image information in results",
                     default:  false
                 })
+                .option("T", {
+                    alias:    "provide-timing",
+                    type:     "boolean",
+                    describe: "provide processing time information in results",
+                    default:  false
+                })
         )
 
         /*  fetch input  */
@@ -166,9 +166,6 @@ module.exports = (parseArgs) => {
             input = await getStream(process.stdin, { encoding: null })
         else
             input = fs.readFileSync(optsCmd.inputFile, { encoding: null })
-
-        /*  start timer  */
-        const timer = makeTimer("ms")
 
         /*  pass-through control to API  */
         const recognizer = new api.Recognizer({
@@ -182,25 +179,22 @@ module.exports = (parseArgs) => {
             provideArea:     optsCmd.provideArea,
             provideMatrix:   optsCmd.provideMatrix,
             provideErrors:   optsCmd.provideErrors,
-            provideImage:    optsCmd.provideImage
+            provideImage:    optsCmd.provideImage,
+            provideTiming:   optsCmd.provideTiming
         })
-        const markers = await recognizer.recognize(input)
-
-        /*  optionally stop timer  */
-        if (optsCmd.timing) {
-            const duration = timer()
-            process.stderr.write(`Elapsed Time: ${duration}ms\n`)
-        }
+        const result = await recognizer.recognize(input)
 
         /*  provide output  */
         let output = ""
         if (optsCmd.outputFormat === "json")
-            output = JSON.stringify(markers, null, "")
+            output = JSON.stringify(result.markers, null, "")
         else if (optsCmd.outputFormat === "yaml")
-            output = jsYAML.safeDump(markers, { indent: 4, flowLevel: 2 })
+            output = jsYAML.safeDump(result.markers, { indent: 4, flowLevel: 2 })
         else if (optsCmd.outputFormat === "html") {
             let body = ""
-            for (const marker of markers) {
+            if (optsCmd.provideTiming)
+                body += `<div>Timing: ${JSON.stringify(result.timing)}</div>\n`
+            for (const marker of result.markers) {
                 body += "<h2>Marker</h2>\n"
                 if (optsCmd.provideArea)
                     body += `<div>Area: ${JSON.stringify(marker.area)}</div>\n`

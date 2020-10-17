@@ -63,7 +63,7 @@ const makeTimer = (resolution = "ns") => {
             duration /= 1000n
         else if (resolution === "ms")
             duration /= (1000n * 1000n)
-        return BigInt.asUintN(64, duration)
+        return Number(BigInt.asUintN(64, duration))
     }
 }
 

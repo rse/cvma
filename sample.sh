@@ -35,8 +35,8 @@ node cvma-cli.js recognize \
     --provide-matrix \
     --provide-errors \
     --provide-image \
+    --provide-timing \
     --output-format="html" \
-    --output-file="sample-result.html" \
-    --timing
+    --output-file="sample-result.html"
 cat sample-result.html
 
