@@ -11,9 +11,9 @@ FIXME
 ## DESCRIPTION
 
 Computer Vision Marker (CVMA) is a small Application Programming
-Interface (API) and Command-Line Interface (CLI) to ...
-FIXME
-This is the documentation of the CLI `cvma`(1).
+Interface (API) and Command-Line Interface (CLI) to render and recognize
+simple markers for Computer Vision (CV). This is the documentation of
+the CLI `cvma`(1).
 
 ## OPTIONS
 

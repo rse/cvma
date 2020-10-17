@@ -2,33 +2,34 @@
 CVMA
 ====
 
-**Computer Vision Marker Rendering and Recognition**
+**Computer Vision Marker &mdash; Rendering and Recognition**
 
 <p/>
-<img src="https://nodei.co/npm/artag.png?downloads=true&stars=true" alt=""/>
+<img src="https://nodei.co/npm/cvma.png?downloads=true&stars=true" alt=""/>
 
 <p/>
-<img src="https://david-dm.org/rse/artag.png" alt=""/>
+<img src="https://david-dm.org/rse/cvma.png" alt=""/>
 
 Abstract
 --------
 
-ARTag is a small Application Programming Interface (API) and Command-Line
-Interface (CLI) to generate and recognize Augmented Reality Tag (ARTag) images.
+Computer Vision Marker (CVMA) is a small Application Programming
+Interface (API) and Command-Line Interface (CLI) to render and recognize
+simple markers for Computer Vision (CV).
 
 Installation
 ------------
 
 ```
-$ npm install -g artag
+$ npm install -g cvma
 ```
 
 Usage
 -----
 
 The Unix manual pages for the
-[API](https://github.com/rse/artag/blob/master/artag-api.md) and the
-[CLI](https://github.com/rse/artag/blob/master/artag-cli.md) contain
+[API](https://github.com/rse/cvma/blob/master/cvma-api.md) and the
+[CLI](https://github.com/rse/cvma/blob/master/cvma-cli.md) contain
 detailed usage information.
 
 Examples

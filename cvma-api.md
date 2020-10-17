@@ -3,16 +3,18 @@
 
 ## SYNOPSIS
 
-`const cvma = require("cvma")`
+`const CVMA = require("cvma")`
 
-`const passwords = cvma(`*options*`)`
+`const renderer   = new CVMA.Renderer(`*options*`)`
+
+`const recognizer = new CVMA.Recognizer(`*options*`)`
 
 ## DESCRIPTION
 
 Computer Vision Marker (CVMA) is a small Application Programming
-Interface (API) and Command-Line Interface (CLI) to ...
-FIXME
-This is the documentation of the API `cvma`(3).
+Interface (API) and Command-Line Interface (CLI) to render and recognize
+simple markers for Computer Vision (CV). This is the documentation of
+the API `cvma`(3).
 
 ## OPTIONS
 
@@ -26,7 +28,7 @@ FIXME
 
 ## HISTORY
 
-VPG was developed in October 2020.
+CVMA was developed in October 2020.
 
 ## AUTHOR
 
