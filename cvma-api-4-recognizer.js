@@ -160,23 +160,20 @@ class Recognizer {
         const marker = markerDef[this.options.markerType]
         const markerSize = 2 * marker.b + marker.x
 
-        /*  determine luminosity of a pixel (0 is black, 1 is white)  */
+        /*  determine luminosity of a pixel (0 is black, 1 is white)
+            (see http://www.w3.org/TR/WCAG20/#relativeluminancedef for formula)  */
         const lumCache = new Map()
         const getPixelLuminosity = (x, y) => {
             const key = `${x}:${y}`
             let lum = lumCache.get(key)
             if (lum === undefined) {
                 const rgb = bitmap.getPixelColor(x, y)
-
-                /*  calculate relative luminance
-                    (see http://www.w3.org/TR/WCAG20/#relativeluminancedef for formula)  */
                 let chan = rgb.r / 255
                 lum = ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.2126
                 chan = rgb.g / 255
                 lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.7152
                 chan = rgb.b / 255
                 lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.0722
-
                 lumCache.set(key, lum)
             }
             return lum
