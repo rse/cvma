@@ -42,6 +42,11 @@ while a CVMA-based application closely tracks the content position on
 the HUD and displays the amount of estimated presentation time on the
 Teleprompter.
 
+PERFORMANCE NOTICE: the marker recognition currently is rather slow --
+about 300-500ms. This means CVMA can only process a video stream with
+about 2-3 fps. For the intended scenario this is still sufficient, but
+for anything else it could be a real show-stopper, of course.
+
 Installation
 ------------
 
