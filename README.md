@@ -15,7 +15,32 @@ Abstract
 
 Computer Vision Marker (CVMA) is a small Application Programming
 Interface (API) and Command-Line Interface (CLI) to render and recognize
-simple markers for Computer Vision (CV).
+simple marker tags for Computer Vision (CV).
+
+CVMA is a very opinionated and specialized solution, primarily intended
+for a special scenario only:
+
+1. CVMA is used to encode 1, 3, 5, 9, 11, 17, 20, 27 or
+   30 bit of payload data (usually representating an increasing page
+   number and/or a page duration) into optical 2x2, 3x3, 4x4, 5x5 or 6x6
+   matrices of black/white pixels and render these matrices as marker
+   tags in PDF or SVG format.
+2. These marker tags are then overlayed to the
+   pages of a content document in order to tag the pages and let their
+   optical occurence being automatically tracked.
+3. These document pages are then displayed on a tablet computer in a
+   zoomed and shifted, but not perspectively distorted, fashion during a
+   live-produced video session.
+4. During this video session the video stream of the tablet is continuously
+   captured and the marker tags being recognized and decoded again in order
+   to control a table of content and progress bar on a Head-Up-Display
+   (HUD) and Teleprompter of the live video session.
+
+The effect of this scenario is that a presenter can scroll to
+arbitrarily document pages on his tablet during the live video session
+while a CVMA-based application closely tracks the content position on
+the HUD and displays the amount of estimated presentation time on the
+Teleprompter.
 
 Installation
 ------------
