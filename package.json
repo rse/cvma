@@ -1,0 +1,65 @@
+{
+    "name":        "cvma",
+    "homepage":    "http://github.com/rse/cvma",
+    "description": "Computer Vision Marker",
+    "version":     "0.9.0",
+    "license":     "MIT",
+    "author": {
+        "name":    "Dr. Ralf S. Engelschall",
+        "email":   "rse@engelschall.com",
+        "url":     "http://engelschall.com"
+    },
+    "keywords": [
+        "computer", "vision", "cv", "marker", "generator", "encoder", "scanner", "decoder"
+    ],
+    "repository": {
+        "type": "git",
+        "url":  "git://github.com/rse/cvma.git"
+    },
+    "bugs": {
+        "url":  "http://github.com/rse/cvma/issues"
+    },
+    "main":     "./cvma-api.js",
+    "bin":      { "cvma": "./cvma-cli.js" },
+    "devDependencies": {
+        "babel-eslint":           "10.1.0",
+        "eslint":                 "7.11.0",
+        "eslint-config-standard": "14.1.1",
+        "eslint-plugin-standard": "4.0.1",
+        "eslint-plugin-promise":  "4.2.1",
+        "eslint-plugin-import":   "2.22.1",
+        "eslint-plugin-node":     "11.1.0",
+        "npm-run-all":            "4.1.5",
+        "pkg":                    "4.4.9",
+        "remark-cli":             "9.0.0",
+        "remark":                 "13.0.0",
+        "remark-man":             "7.0.0"
+    },
+    "dependencies" : {
+        "yargs":                  "16.1.0",
+        "chalk":                  "4.1.0",
+        "hamming-code":           "0.0.2",
+        "pdfkit":                 "0.11.0",
+        "@svgdotjs/svg.js":       "3.0.16",
+        "svgdom":                 "0.1.8",
+        "concat-stream":          "2.0.0",
+        "get-stream":             "6.0.0",
+        "jimp":                   "0.16.1",
+        "color":                  "3.1.3",
+        "js-yaml":                "3.14.0",
+        "textframe":              "1.1.3",
+        "datauri":                "3.0.0"
+    },
+    "engines": {
+        "node":                   ">=12.0.0"
+    },
+    "scripts": {
+        "prepublishOnly":         "npm-run-all -s lint",
+        "build":                  "npm-run-all -s lint generate:man1 generate:man3 package",
+        "clean":                  "npm-run-all -s package:clean generate:clean",
+        "lint":                   "eslint --config eslint.yaml cvma-api*.js cvma-cli*.js",
+        "generate:man1":          "remark --quiet --use remark-man --output cvma.1 cvma-cli.md",
+        "generate:man3":          "remark --quiet --use remark-man --output cvma.3 cvma-api.md",
+        "generate:clean":         "rm -f cvma.3 cvma.8"
+    }
+}
