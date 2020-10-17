@@ -179,7 +179,8 @@ class Recognizer {
             return lum
         }
 
-        /*  determine darkest/lightest pixel in scan window  */
+        /*  determine darkest/lightest pixel in scan window
+            (and implicitly cache the luminosity of all pixels for subsequent scans)  */
         timingStart()
         let darkest  = 1.00
         let lightest = 0.00
