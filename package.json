@@ -55,7 +55,7 @@
     },
     "scripts": {
         "prepublishOnly":         "npm-run-all -s lint",
-        "build":                  "npm-run-all -s lint generate:man1 generate:man3 package",
+        "build":                  "npm-run-all -s lint generate:man1 generate:man3",
         "clean":                  "npm-run-all -s package:clean generate:clean",
         "lint":                   "eslint --config eslint.yaml cvma-api*.js cvma-cli*.js",
         "generate:man1":          "remark --quiet --use remark-man --output cvma.1 cvma-cli.md",
