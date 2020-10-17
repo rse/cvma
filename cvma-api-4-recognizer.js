@@ -202,27 +202,31 @@ class Recognizer {
             isNear(col, lightest, 0.33)
 
         /*  helper function for state transition  */
+        const stateOTHER  = Symbol("other")
+        const statePROLOG = Symbol("prolog")
+        const stateBODY   = Symbol("body")
+        const stateEPILOG = Symbol("epilog")
         const stateTransition = (state, lum) => {
             const isDark  = isDarkColor(lum)
             const isLight = isLightColor(lum)
-            if (state === "other") {
+            if (state === stateOTHER) {
                 if (isLight)
-                    state = "prolog"
+                    state = statePROLOG
             }
-            else if (state === "prolog") {
+            else if (state === statePROLOG) {
                 if (isDark)
-                    state = "body"
+                    state = stateBODY
                 else if (!isDark & !isLight)
-                    state = "other"
+                    state = stateOTHER
             }
-            else if (state === "body") {
+            else if (state === stateBODY) {
                 if (isLight)
-                    state = "epilog"
+                    state = stateEPILOG
                 else if (!isDark & !isLight)
-                    state = "other"
+                    state = stateOTHER
             }
-            else if (state === "epilog")
-                state = "other"
+            else if (state === stateEPILOG)
+                state = stateOTHER
             return state
         }
 
@@ -230,16 +234,16 @@ class Recognizer {
         timingStart()
         const areasH = []
         for (let y = Y; y < Y + H; y++) {
-            let state = "other"
+            let state = stateOTHER
             let area = null
             bitmap.scanArea(X, y, W, 1, (x, y, idx) => {
                 const lum = getPixelLuminosity(x, y)
                 const stateNew = stateTransition(state, lum)
                 if (stateNew !== state) {
                     state = stateNew
-                    if (state === "body")
+                    if (state === stateBODY)
                         area = { x, y, s: 0 }
-                    else if (state === "epilog") {
+                    else if (state === stateEPILOG) {
                         if (area.s >= markerSize) {
                             areasH.push(area)
                             area = null
@@ -259,16 +263,16 @@ class Recognizer {
         timingStart()
         const areasV = []
         for (const x of areasH.map((a) => a.x).filter((v, i, a) => a.indexOf(v) === i)) {
-            let state = "other"
+            let state = stateOTHER
             let area = null
             bitmap.scanArea(x, Y, 1, H, (x, y, idx) => {
                 const lum = getPixelLuminosity(x, y)
                 const stateNew = stateTransition(state, lum)
                 if (stateNew !== state) {
                     state = stateNew
-                    if (state === "body")
+                    if (state === stateBODY)
                         area = { x, y, s: 0 }
-                    else if (state === "epilog") {
+                    else if (state === stateEPILOG) {
                         if (area.s >= markerSize) {
                             areasV.push(area)
                             area = null
