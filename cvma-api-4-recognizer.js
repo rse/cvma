@@ -104,8 +104,7 @@ class Recognizer {
             scanHeight:      "0",
             scanPositionX:   "0",
             scanPositionY:   "0",
-            markerColorBG:   "#ffffff",
-            markerColorFG:   "#000000",
+            detectDarkLight: false,
             provideArea:     false,
             provideGrid:     false,
             provideMatrix:   false,
@@ -182,15 +181,19 @@ class Recognizer {
         /*  determine darkest/lightest pixel in scan window
             (and implicitly cache the luminosity of all pixels for subsequent scans)  */
         timingStart()
-        let darkest  = 1.00
-        let lightest = 0.00
-        bitmap.scanArea(X, Y, W, H, (x, y, idx) => {
-            const lum = getPixelLuminosity(x, y)
-            if (darkest > lum)
-                darkest = lum
-            if (lightest < lum)
-                lightest = lum
-        })
+        let darkest  = 0.00
+        let lightest = 1.00
+        if (this.options.detectDarkLight) {
+            darkest  = 1.00
+            lightest = 0.00
+            bitmap.scanArea(X, Y, W, H, (x, y, idx) => {
+                const lum = getPixelLuminosity(x, y)
+                if (darkest > lum)
+                    darkest = lum
+                if (lightest < lum)
+                    lightest = lum
+            })
+        }
         timingEnd()
 
         /*  helper function for checking whether a number is near another  */

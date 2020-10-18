@@ -50,8 +50,7 @@ module.exports = (parseArgs) => {
                     "[-y|--scan-position-y=<string>] " +
                     "[-w|--scan-width=<string>] " +
                     "[-h|--scan-height=<string>] " +
-                    "[-B|--marker-color-bg=<string>] " +
-                    "[-F|--marker-color-fg=<string>] " +
+                    "[-d|--detect-dark-light] " +
                     "[-A|--provide-area] " +
                     "[-G|--provide-grid] " +
                     "[-M|--provide-matrix] " +
@@ -114,12 +113,11 @@ module.exports = (parseArgs) => {
                     nargs:    1,
                     default:  "0"
                 })
-                .option("B", {
-                    alias:    "marker-color-bg",
-                    type:     "string",
-                    describe: "background color of marker on canvas",
-                    nargs:    1,
-                    default:  "#ffffff"
+                .option("d", {
+                    alias:    "detect-dark-light",
+                    type:     "boolean",
+                    describe: "detect darkest/lightest luminosity in scan area",
+                    default:  false
                 })
                 .option("F", {
                     alias:    "marker-color-fg",
@@ -176,8 +174,7 @@ module.exports = (parseArgs) => {
             scanHeight:      optsCmd.scanHeight,
             scanPositionX:   optsCmd.scanPositionX,
             scanPositionY:   optsCmd.scanPositionY,
-            markerColorBG:   optsCmd.markerColorBg,
-            markerColorFG:   optsCmd.markerColorFg,
+            detectDarkLight: optsCmd.detectDarkLight,
             provideArea:     optsCmd.provideArea,
             provideGrid:     optsCmd.provideGrid,
             provideMatrix:   optsCmd.provideMatrix,

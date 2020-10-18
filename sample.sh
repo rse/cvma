@@ -31,6 +31,7 @@ node cvma-cli.js recognize \
     --scan-width=200px \
     --scan-height=0 \
     --input-file=sample-content.png \
+    --detect-dark-light=no \
     --provide-area \
     --provide-matrix \
     --provide-errors \
