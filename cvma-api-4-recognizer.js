@@ -194,7 +194,7 @@ class Recognizer {
                     lightest = lum
             })
         }
-        let threshold = (lightest - darkest) / 2
+        const threshold = (lightest - darkest) / 2
         timingEnd()
 
         /*  helper function for checking whether a number is near another  */
@@ -247,8 +247,6 @@ class Recognizer {
                             area = null
                         }
                     }
-                    else
-                        area = null
                 }
                 if (area !== null)
                     area.s++
