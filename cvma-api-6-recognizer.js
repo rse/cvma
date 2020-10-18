@@ -239,7 +239,7 @@ class Recognizer {
         const markers = []
         for (const area of areas) {
             /*  make area square again  */
-            let s = Math.max(area.w, area.h)
+            const s = Math.max(area.w, area.h)
             area.w = s
             area.h = s
 
