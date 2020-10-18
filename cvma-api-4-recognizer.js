@@ -167,7 +167,7 @@ class Recognizer {
             let lum = lumCache.get(key1)
             if (lum === undefined) {
                 const rgb = bitmap.getPixelColor(x, y)
-                const key2 = rgb.r * 256*256 + rgb.g * 256 + rgb.b
+                const key2 = rgb.r * (256 * 256) + rgb.g * 256 + rgb.b
                 lum = lumCache.get(key2)
                 if (lum === undefined) {
                     let chan = rgb.r / 255
