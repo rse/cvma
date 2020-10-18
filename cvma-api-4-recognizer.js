@@ -205,10 +205,6 @@ class Recognizer {
         const threshold = (lightest - darkest) / 2
         timingEnd()
 
-        /*  helper function for checking whether a number is near another  */
-        const isNear = (x, y, epsilon) =>
-            (Math.abs(x - y) <= epsilon)
-
         /*  helper function for state transition  */
         const stateOTHER  = Symbol("other")
         const statePROLOG = Symbol("prolog")
@@ -295,7 +291,7 @@ class Recognizer {
             for (const areaV of areasV) {
                 if (   areaH.x === areaV.x
                     && areaH.y === areaV.y
-                    && isNear(areaH.s, areaV.s, Math.max(((areaH.s + areaV.s) / 2) * 0.10), 1)) {
+                    && Math.abs(areaH.s - areaV.s) < Math.max((((areaH.s + areaV.s) / 2) * 0.10), 1)) {
                     areas.push({ x: areaH.x, y: areaH.y, w: areaH.s, h: areaV.s })
                 }
             }
