@@ -238,6 +238,11 @@ class Recognizer {
         timingStart()
         const markers = []
         for (const area of areas) {
+            /*  make area square again  */
+            let s = Math.max(area.w, area.h)
+            area.w = s
+            area.h = s
+
             /*  determine grid positions  */
             const slice = (lenTotal, numElement) => {
                 const slices = []
@@ -288,8 +293,8 @@ class Recognizer {
                     let cnt = 0
                     for (let k = 0; k < lums.length; k++) {
                         if (k === Math.round(lums.length / 2)) {
-                            lum += 5 * lums[k]
-                            cnt += 5
+                            lum += 10 * lums[k]
+                            cnt += 10
                         }
                         else {
                             lum += 1 * lums[k]
