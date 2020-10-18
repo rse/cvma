@@ -23,82 +23,12 @@
 */
 
 /*  external requirements  */
-const hammingCode  = require("hamming-code")
-const PDFKit       = require("pdfkit")
-const SVGjs        = require("@svgdotjs/svg.js")
-const SVGdom       = require("svgdom")
-const concatStream = require("concat-stream")
+const hammingCode              = require("hamming-code")
 
 /*  internal requirements  */
-const { convertNum } = require("./cvma-api-1-util.js")
-const { markerDef }  = require("./cvma-api-2-defs.js")
-
-/*  rendering abstract class  */
-class RendererBase {
-    constructor (options = {}) {
-        this.options = Object.assign({}, {
-            canvasWidth:       0,
-            canvasHeight:      0,
-            markerPositionX:   0,
-            markerPositionY:   0,
-            markerPixelSize:   0
-        }, options)
-    }
-}
-
-/*  SVG rendering class  */
-class RendererSVG extends RendererBase {
-    constructor (...args) {
-        super(...args)
-        const window = SVGdom.createSVGWindow()
-        const document = window.document
-        SVGjs.registerWindow(window, document)
-        this.canvas = SVGjs.SVG(document.documentElement)
-        this.canvas.size(this.options.canvasWidth, this.options.canvasHeight)
-    }
-    set (x, y, color) {
-        if (color === "transparent")
-            return
-        this.canvas
-            .rect(this.options.markerPixelSize, this.options.markerPixelSize)
-            .fill(color)
-            .move(this.options.markerPositionX + x * this.options.markerPixelSize,
-                this.options.markerPositionY + y * this.options.markerPixelSize)
-    }
-    async render () {
-        return this.canvas.svg()
-    }
-}
-
-/*  PDF rendering class  */
-class RendererPDF extends RendererBase {
-    constructor (...args) {
-        super(...args)
-        this.doc = new PDFKit({ autoFirstPage: false })
-        this.doc.addPage({
-            size: [ this.options.canvasWidth, this.options.canvasHeight ],
-            margin: 0
-        })
-    }
-    set (x, y, color) {
-        if (color === "transparent")
-            return
-        this.doc
-            .rect(
-                this.options.markerPositionX + x * this.options.markerPixelSize,
-                this.options.markerPositionY + y * this.options.markerPixelSize,
-                this.options.markerPixelSize, this.options.markerPixelSize)
-            .fill(color)
-    }
-    async render () {
-        return new Promise((resolve, reject) => {
-            this.doc.pipe(concatStream((buffer) => {
-                resolve(buffer)
-            }))
-            this.doc.end()
-        })
-    }
-}
+const { convertNum }           = require("./cvma-api-1-util.js")
+const { markerDef }            = require("./cvma-api-2-defs.js")
+const { VectorSVG, VectorPDF } = require("./cvma-api-3-vector.js")
 
 /*  the renderer API class  */
 class Renderer {
@@ -143,11 +73,11 @@ class Renderer {
             throw new Error("data out of range")
 
         /*  determine renderer  */
-        let Renderer
+        let Vector
         if (this.options.outputFormat === "svg")
-            Renderer = RendererSVG
+            Vector = VectorSVG
         else if (this.options.outputFormat === "pdf")
-            Renderer = RendererPDF
+            Vector = VectorPDF
 
         /*  calculate marker width/height in pixels  */
         const w = marker.x + 2 * (marker.b + marker.m)
@@ -176,7 +106,7 @@ class Renderer {
             markerPositionY -= h * this.options.markerPixelSize
 
         /*  create rendering instance  */
-        const renderer = new Renderer({
+        const vector = new Vector({
             canvasWidth, canvasHeight,
             markerPositionX, markerPositionY,
             markerPixelSize: this.options.markerPixelSize
@@ -186,12 +116,12 @@ class Renderer {
         for (let k = 0; k < marker.m + marker.b; k++) {
             const color = (k < marker.b ? this.options.markerColorBG : this.options.markerColorFG)
             for (let i = k; i < w - k; i++) {
-                renderer.set(i, k, color)
-                renderer.set(i, h - k - 1, color)
+                vector.set(i, k, color)
+                vector.set(i, h - k - 1, color)
             }
             for (let i = k + 1; i < h - k - 1; i++) {
-                renderer.set(k, i, color)
-                renderer.set(w - k - 1, i, color)
+                vector.set(k, i, color)
+                vector.set(w - k - 1, i, color)
             }
         }
 
@@ -226,7 +156,7 @@ class Renderer {
         for (let i = 0; i < marker.x * marker.y; i++) {
             const ry = Math.trunc(i / marker.x)
             const rx = i % marker.x
-            renderer.set(
+            vector.set(
                 marker.b + marker.m + rx,
                 marker.b + marker.m + ry,
                 pixels[i] === true ?
@@ -236,7 +166,7 @@ class Renderer {
         }
 
         /*  render the image  */
-        const output = await renderer.render()
+        const output = await vector.render()
         return output
     }
 }

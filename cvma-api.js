@@ -23,8 +23,8 @@
 */
 
 /*  import parts  */
-const { Renderer   } = require("./cvma-api-3-renderer.js")
-const { Recognizer } = require("./cvma-api-4-recognizer.js")
+const { Renderer   } = require("./cvma-api-5-renderer.js")
+const { Recognizer } = require("./cvma-api-6-recognizer.js")
 
 /*  export API function  */
 module.exports = {

@@ -24,74 +24,11 @@
 
 /*  external requirements  */
 const hammingCode  = require("hamming-code")
-const Jimp         = require("jimp")
 
 /*  internal requirements  */
-const { convertNum, makeTimer } = require("./cvma-api-1-util.js")
-const { markerDef }             = require("./cvma-api-2-defs.js")
-
-/*  helper class for bitmap abstraction  */
-class Bitmap {}
-
-/*  helper class for bitmap abstraction (Node/Jimp flavor)  */
-class BitmapJimp extends Bitmap {
-    constructor (jimp) {
-        super()
-        this.jimp = jimp
-    }
-    get width  () { return this.jimp.bitmap.width  }
-    get height () { return this.jimp.bitmap.height }
-    getImageData (x, y, w, h) {
-        const tmp = new Jimp(w, h, () => {})
-        tmp.blit(this.jimp, 0, 0, x, y, w, h)
-        return {
-            width:  w,
-            height: h,
-            data:   new Uint8ClampedArray(tmp.bitmap.data)
-        }
-    }
-    getPixelColor (x, y) {
-        return Jimp.intToRGBA(this.jimp.getPixelColor(x, y))
-    }
-    scanArea (x, y, w, h, cb) {
-        return this.jimp.scan(x, y, w, h, cb)
-    }
-}
-
-/*  helper class for bitmap abstraction (DOM/Canvas flavor)  */
-class BitmapCanvas extends Bitmap {
-    constructor (canvas) {
-        super()
-        this.canvas = canvas
-        this.ctx    = this.canvas.getContext("2d")
-        this.img    = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-    }
-    get width  () { return this.img.width  }
-    get height () { return this.img.height }
-    getImageData (x, y, w, h) {
-        return this.ctx.getImageData(x, y, w, h)
-    }
-    getPixelColor (x, y) {
-        return {
-            r: this.img.data[((x + y * this.width) << 2)],
-            g: this.img.data[((x + y * this.width) << 2) + 1],
-            b: this.img.data[((x + y * this.width) << 2) + 2],
-            a: this.img.data[((x + y * this.width) << 2) + 3]
-        }
-    }
-    scanArea (x, y, w, h, cb) {
-        const X = Math.round(x)
-        const Y = Math.round(y)
-        const W = Math.round(w)
-        const H = Math.round(h)
-        for (let y = Y; y < Y + H; y++) {
-            for (let x = X; x < X + W; x++) {
-                const idx = ((x + y * this.width) << 2)
-                cb(x, y, idx)
-            }
-        }
-    }
-}
+const { convertNum, makeTimer }    = require("./cvma-api-1-util.js")
+const { markerDef }                = require("./cvma-api-2-defs.js")
+const { BitmapJimp, BitmapCanvas } = require("./cvma-api-4-bitmap.js")
 
 /*  the recognizer API class  */
 class Recognizer {
