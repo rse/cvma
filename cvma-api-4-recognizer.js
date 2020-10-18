@@ -194,15 +194,12 @@ class Recognizer {
                     lightest = lum
             })
         }
+        let threshold = (lightest - darkest) / 2
         timingEnd()
 
         /*  helper function for checking whether a number is near another  */
         const isNear = (x, y, epsilon) =>
             (Math.abs(x - y) <= epsilon)
-        const isDarkColor = (col) =>
-            isNear(col, darkest, 0.33)
-        const isLightColor = (col) =>
-            isNear(col, lightest, 0.33)
 
         /*  helper function for state transition  */
         const stateOTHER  = Symbol("other")
@@ -210,8 +207,8 @@ class Recognizer {
         const stateBODY   = Symbol("body")
         const stateEPILOG = Symbol("epilog")
         const stateTransition = (state, lum) => {
-            const isDark  = isDarkColor(lum)
-            const isLight = isLightColor(lum)
+            const isDark  = (lum <  threshold)
+            const isLight = (lum >= threshold)
             if (state === stateOTHER) {
                 if (isLight)
                     state = statePROLOG
@@ -363,7 +360,7 @@ class Recognizer {
                         }
                     }
                     lum /= cnt
-                    matrix.push(isDarkColor(lum) ? 1 : 0)
+                    matrix.push(lum < threshold ? 1 : 0)
                 }
             }
 
