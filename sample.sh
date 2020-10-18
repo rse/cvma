@@ -3,7 +3,6 @@
 #   create marker overlay PDF
 node cvma-cli.js render \
     --marker-type=66O \
-    --marker-color-fg="#000000" \
     --output-format=pdf \
     --canvas-width=29.7cm \
     --canvas-height=21.0cm \
@@ -25,7 +24,6 @@ pdftocairo -png -scale-to-x 1200 -scale-to-y -1 -singlefile sample-content.pdf s
 rm -f sample.html
 node cvma-cli.js recognize \
     --marker-type=66O \
-    --marker-color-fg="#000000" \
     --scan-position-x=-200px \
     --scan-position-y=0 \
     --scan-width=200px \

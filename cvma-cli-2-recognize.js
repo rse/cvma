@@ -119,13 +119,6 @@ module.exports = (parseArgs) => {
                     describe: "detect darkest/lightest luminosity in scan area",
                     default:  false
                 })
-                .option("F", {
-                    alias:    "marker-color-fg",
-                    type:     "string",
-                    describe: "foreground color of marker on canvas",
-                    nargs:    1,
-                    default:  "#000000"
-                })
                 .option("A", {
                     alias:    "provide-area",
                     type:     "boolean",
