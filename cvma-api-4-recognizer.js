@@ -342,7 +342,7 @@ class Recognizer {
                         })
                     }
 
-                    /*  calculate average luminosity of cell block  */
+                    /*  calculate (weighted) average luminosity of cell block  */
                     const lums = []
                     bitmap.scanArea(x, y, w, h, (x, y, idx) => {
                         lums.push(getPixelLuminosity(x, y))
@@ -351,8 +351,8 @@ class Recognizer {
                     let cnt = 0
                     for (let k = 0; k < lums.length; k++) {
                         if (k === Math.round(lums.length / 2)) {
-                            lum += 4 * lums[k]
-                            cnt += 4
+                            lum += 5 * lums[k]
+                            cnt += 5
                         }
                         else {
                             lum += 1 * lums[k]
