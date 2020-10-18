@@ -24,9 +24,9 @@ pdftocairo -png -scale-to-x 1200 -scale-to-y -1 -singlefile sample-content.pdf s
 rm -f sample.html
 node cvma-cli.js recognize \
     --marker-type=66O \
-    --scan-position-x=-200px \
+    --scan-position-x=-100px \
     --scan-position-y=0 \
-    --scan-width=200px \
+    --scan-width=100px \
     --scan-height=0 \
     --input-file=sample-content.png \
     --detect-dark-light=no \

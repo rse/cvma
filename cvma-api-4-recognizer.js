@@ -294,7 +294,7 @@ class Recognizer {
             for (const areaV of areasV) {
                 if (   isNear(areaH.x, areaV.x, 0)
                     && isNear(areaH.y, areaV.y, 0)
-                    && isNear(areaH.s, areaV.s, ((areaH.s + areaV.s) / 2) * 0.05)) {
+                    && isNear(areaH.s, areaV.s, Math.max(((areaH.s + areaV.s) / 2) * 0.10), 1)) {
                     areas.push({ x: areaH.x, y: areaH.y, w: areaH.s, h: areaV.s })
                 }
             }
