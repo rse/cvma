@@ -163,17 +163,22 @@ class Recognizer {
             (see http://www.w3.org/TR/WCAG20/#relativeluminancedef for formula)  */
         const lumCache = new Map()
         const getPixelLuminosity = (x, y) => {
-            const key = `${x}:${y}`
-            let lum = lumCache.get(key)
+            const key1 = `${x}:${y}`
+            let lum = lumCache.get(key1)
             if (lum === undefined) {
                 const rgb = bitmap.getPixelColor(x, y)
-                let chan = rgb.r / 255
-                lum = ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.2126
-                chan = rgb.g / 255
-                lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.7152
-                chan = rgb.b / 255
-                lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.0722
-                lumCache.set(key, lum)
+                const key2 = `${rgb.r}:${rgb.g}:${rgb.b}`
+                lum = lumCache.get(key2)
+                if (lum === undefined) {
+                    let chan = rgb.r / 255
+                    lum = ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.2126
+                    chan = rgb.g / 255
+                    lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.7152
+                    chan = rgb.b / 255
+                    lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.0722
+                    lumCache.set(key2, lum)
+                }
+                lumCache.set(key1, lum)
             }
             return lum
         }
