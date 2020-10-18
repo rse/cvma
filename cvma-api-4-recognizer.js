@@ -231,7 +231,7 @@ class Recognizer {
         /*  iterate over all rows in the scan window and horizontally find potential marker areas  */
         timingStart()
         const areasH = []
-        for (let y = Y; y < Y + H; y++) {
+        for (let y = Y; y < Y + H - markerSize; y++) {
             let state = stateOTHER
             let area = null
             bitmap.scanArea(X, y, W, 1, (x, y, idx) => {
