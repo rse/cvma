@@ -252,7 +252,7 @@ class Recognizer {
                         }
                     }
                 }
-                if (area !== null)
+                else if (area !== null)
                     area.s++
             })
         }
@@ -279,7 +279,7 @@ class Recognizer {
                         }
                     }
                 }
-                if (area !== null)
+                else if (area !== null)
                     area.s++
             })
         }
