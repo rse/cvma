@@ -2,7 +2,7 @@
     "name":        "cvma",
     "homepage":    "http://github.com/rse/cvma",
     "description": "Computer Vision Marker",
-    "version":     "0.9.4",
+    "version":     "0.9.5",
     "license":     "MIT",
     "author": {
         "name":    "Dr. Ralf S. Engelschall",
