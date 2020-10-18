@@ -216,17 +216,15 @@ class Recognizer {
             else if (state === statePROLOG) {
                 if (isDark)
                     state = stateBODY
-                else if (!isDark & !isLight)
-                    state = stateOTHER
             }
             else if (state === stateBODY) {
                 if (isLight)
                     state = stateEPILOG
-                else if (!isDark & !isLight)
+            }
+            else if (state === stateEPILOG) {
+                if (!isLight)
                     state = stateOTHER
             }
-            else if (state === stateEPILOG)
-                state = stateOTHER
             return state
         }
 
