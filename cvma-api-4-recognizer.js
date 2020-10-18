@@ -123,6 +123,9 @@ class Recognizer {
         this.options.scanHeight      = convertNum(this.options.scanHeight,    "px")
         this.options.scanPositionX   = convertNum(this.options.scanPositionX, "px")
         this.options.scanPositionY   = convertNum(this.options.scanPositionY, "px")
+
+        /*  central cache for RGB to luminosity calculation  */
+        this.rgb2lumCache = new Map()
     }
 
     /*  API method for recognizing markers  */
@@ -161,14 +164,14 @@ class Recognizer {
 
         /*  determine luminosity of a pixel (0 is black, 1 is white)
             (see http://www.w3.org/TR/WCAG20/#relativeluminancedef for formula)  */
-        const lumCache = new Map()
+        const xy2lumCache = new Map()
         const getPixelLuminosity = (x, y) => {
             const key1 = y * 100000 + x
-            let lum = lumCache.get(key1)
+            let lum = xy2lumCache.get(key1)
             if (lum === undefined) {
                 const rgb = bitmap.getPixelColor(x, y)
                 const key2 = rgb.r * (256 * 256) + rgb.g * 256 + rgb.b
-                lum = lumCache.get(key2)
+                lum = this.rgb2lumCache.get(key2)
                 if (lum === undefined) {
                     let chan = rgb.r / 255
                     lum = ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.2126
@@ -176,9 +179,9 @@ class Recognizer {
                     lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.7152
                     chan = rgb.b / 255
                     lum += ((chan <= 0.03928) ? chan / 12.92 : Math.pow(((chan + 0.055) / 1.055), 2.4)) * 0.0722
-                    lumCache.set(key2, lum)
+                    this.rgb2lumCache.set(key2, lum)
                 }
-                lumCache.set(key1, lum)
+                xy2lumCache.set(key1, lum)
             }
             return lum
         }
