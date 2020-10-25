@@ -85,15 +85,19 @@ class Renderer {
 
         /*  calculate canvas size  */
         const canvasWidth  = this.options.canvasWidth > 0 ?
-            this.options.canvasWidth  : w * this.options.markerPixelSize
+            this.options.canvasWidth :
+            w * this.options.markerPixelSize
         const canvasHeight = this.options.canvasHeight > 0 ?
-            this.options.canvasHeight : h * this.options.markerPixelSize
+            this.options.canvasHeight :
+            h * this.options.markerPixelSize
 
         /*  determine marker position on canvas  */
         let markerPositionX = this.options.markerPositionX < 0 ?
-            canvasWidth + this.options.markerPositionX : this.options.markerPositionX
+            canvasWidth + this.options.markerPositionX :
+            this.options.markerPositionX
         let markerPositionY = this.options.markerPositionY < 0 ?
-            canvasHeight + this.options.markerPositionY : this.options.markerPositionY
+            canvasHeight + this.options.markerPositionY :
+            this.options.markerPositionY
 
         /*  adjust for different position handle  */
         if (this.options.markerHandle === "tr")

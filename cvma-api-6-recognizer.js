@@ -89,11 +89,17 @@ class Recognizer {
 
         /*  optionally crop to scan area  */
         const X = this.options.scanPositionX < 0 ?
-            bitmap.width + this.options.scanPositionX : this.options.scanPositionX
+            bitmap.width + this.options.scanPositionX :
+            this.options.scanPositionX
         const Y = this.options.scanPositionY < 0 ?
-            bitmap.height + this.options.scanPositionY : this.options.scanPositionY
-        const W = this.options.scanWidth  > 0 ? this.options.scanWidth  : bitmap.width
-        const H = this.options.scanHeight > 0 ? this.options.scanHeight : bitmap.height
+            bitmap.height + this.options.scanPositionY :
+            this.options.scanPositionY
+        const W = this.options.scanWidth  > 0 ?
+            this.options.scanWidth :
+            bitmap.width
+        const H = this.options.scanHeight > 0 ?
+            this.options.scanHeight :
+            bitmap.height
 
         /*  determine marker information  */
         const marker = markerDef[this.options.markerType]
